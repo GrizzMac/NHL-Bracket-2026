@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 Stanley Cup Bracket Challenge</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0b1829;--navy2:#112238;--navy3:#1a3356;
+  --gold:#c8922a;--gold2:#f0b84a;--gold3:#fdf3dc;
+  --ice:#e8f4fd;--ice2:#c0d8ef;
+  --green:#1a6e40;--green2:#e8f5ee;
+  --red:#8a1a1a;--red2:#fdf0f0;
+  --border:#1e3a5a;--card:#152d4a;--card2:#1a3560;
+  --text:#fff;--textm:rgba(255,255,255,.62);--textd:rgba(255,255,255,.32);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--text);min-height:100vh}
+a{color:inherit;text-decoration:none}
+
+/* HEADER */
+.hdr{background:var(--navy2);border-bottom:2px solid var(--gold);padding:1.4rem 1.5rem 1rem;text-align:center}
+.hdr h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(1.8rem,5vw,3rem);color:var(--gold2);letter-spacing:.06em;line-height:1}
+.hdr p{font-size:.78rem;color:var(--textm);margin-top:.35rem}
+.share-btn{display:inline-flex;align-items:center;gap:6px;margin-top:.8rem;padding:7px 16px;border-radius:20px;border:1px solid var(--gold);background:transparent;color:var(--gold2);font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;cursor:pointer;transition:all .15s}
+.share-btn:hover{background:var(--gold);color:var(--navy)}
+.share-btn svg{width:14px;height:14px}
+
+/* MAIN */
+.main{max-width:1000px;margin:0 auto;padding:1.5rem 1rem 5rem}
+
+/* TABS */
+.tabs{display:flex;gap:3px;background:var(--navy2);border-radius:10px;padding:4px;margin-bottom:1.5rem;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;padding:7px 14px;border-radius:7px;border:none;background:transparent;color:var(--textm);font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap}
+.tab.active{background:var(--gold);color:var(--navy);font-weight:600}
+.pane{display:none}.pane.active{display:block}
+
+/* PODIUM */
+.podium{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.4rem}
+.pod{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 10px;text-align:center}
+.pod.gold{border-color:var(--gold);background:var(--navy3)}
+.pod-rank{font-size:.68rem;font-weight:600;color:var(--gold2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
+.pod-name{font-size:.95rem;font-weight:600;color:#fff;margin-bottom:1px}
+.pod-pts{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:var(--gold2);line-height:1}
+.pod-sub{font-size:.68rem;color:var(--textd)}
+
+/* STANDINGS TABLE */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:1rem}
+.card-hdr{padding:10px 14px;background:var(--navy3);font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gold2);border-bottom:1px solid var(--border)}
+.stbl{width:100%;border-collapse:collapse}
+.stbl th{font-size:.68rem;font-weight:600;color:var(--textd);text-transform:uppercase;letter-spacing:.06em;padding:8px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.stbl th.r,.stbl td.r{text-align:right}
+.stbl td{padding:9px 14px;border-bottom:1px solid rgba(30,58,90,.5);font-size:.85rem;vertical-align:middle}
+.stbl tr:last-child td{border-bottom:none}
+.stbl tr:hover td{background:rgba(255,255,255,.03)}
+.rank-n{font-size:.75rem;color:var(--textd);width:24px}
+.p-name{font-weight:600;font-size:.9rem}
+.pts-n{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--gold2)}
+.bdg{display:inline-block;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:600;margin-left:3px}
+.bdg-t{background:rgba(26,110,64,.25);color:#5de89a}
+.bdg-g{background:rgba(200,146,42,.2);color:var(--gold2)}
+.bdg-x{background:rgba(255,255,255,.06);color:var(--textd)}
+.expand-btn{background:none;border:none;color:var(--textd);cursor:pointer;font-size:.75rem;padding:2px 6px;border-radius:4px;transition:.15s}
+.expand-btn:hover{color:var(--gold2)}
+.breakdown{display:none;padding:8px 14px 10px 38px;background:rgba(0,0,0,.15);border-bottom:1px solid var(--border)}
+.breakdown.open{display:block}
+.bk-row{display:flex;justify-content:space-between;font-size:.75rem;color:var(--textm);padding:2px 0}
+
+/* LEGEND */
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px}
+.leg{display:flex;align-items:center;gap:5px;font-size:.75rem;color:var(--textm)}
+
+/* SERIES SECTION */
+.series-group{margin-bottom:.5rem}
+.series-label{font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--textd);margin:1rem 0 .4rem}
+.series-row{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:5px;flex-wrap:wrap}
+.s-conf{font-size:.65rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;min-width:22px}
+.s-conf.e{color:#6ab0f5}.s-conf.w{color:#f5a86a}
+.s-matchup{font-size:.85rem;font-weight:500;flex:1;min-width:0}
+.s-winner{color:#fff;font-weight:600}
+.s-loser{color:var(--textd);text-decoration:line-through;font-size:.8rem}
+.s-rec{font-size:.8rem;color:var(--textm);white-space:nowrap}
+.s-status{font-size:.68rem;padding:3px 8px;border-radius:12px;white-space:nowrap;font-weight:500}
+.s-status.live{background:rgba(138,26,26,.35);color:#f07070}
+.s-status.done{background:rgba(26,110,64,.3);color:#5de89a}
+.s-status.ongoing{background:rgba(200,146,42,.15);color:var(--gold2)}
+
+/* INDIVIDUAL BRACKET */
+.bracket-wrap{overflow-x:auto;padding-bottom:1rem}
+.bracket-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;min-width:560px}
+.b-conf-title{font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--gold2);letter-spacing:.06em;margin-bottom:8px}
+.b-round-label{font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--textd);margin:10px 0 4px}
+.b-pick{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--card);margin-bottom:3px}
+.b-pick.winner{background:var(--navy3);border-color:var(--gold)}
+.b-pick-name{font-size:.82rem;font-weight:500}
+.b-pick-games{font-size:.72rem;color:var(--textd)}
+.b-cup{margin-top:14px;padding:12px 16px;border-radius:10px;background:var(--navy3);border:1px solid var(--gold);display:flex;align-items:center;gap:10px}
+.b-cup-label{font-size:.65rem;color:var(--textd);text-transform:uppercase;letter-spacing:.07em}
+.b-cup-team{font-size:1rem;font-weight:600;color:var(--gold2)}
+.b-cup-games{font-size:.78rem;color:var(--textm);margin-left:auto}
+
+/* SHARE MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:var(--navy2);border:1px solid var(--border);border-radius:14px;padding:1.5rem;max-width:480px;width:90%}
+.modal h3{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--gold2);margin-bottom:.8rem}
+.modal p{font-size:.82rem;color:var(--textm);margin-bottom:.8rem}
+.url-box{background:var(--navy);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.72rem;color:var(--ice2);word-break:break-all;margin-bottom:.8rem;font-family:monospace;max-height:80px;overflow-y:auto}
+.modal-btns{display:flex;gap:8px}
+.modal-btn{flex:1;padding:9px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--textm);font-family:'DM Sans',sans-serif;font-size:.8rem;cursor:pointer;transition:.15s}
+.modal-btn.primary{background:var(--gold);border-color:var(--gold);color:var(--navy);font-weight:600}
+.modal-btn:hover{opacity:.85}
+.copied-msg{font-size:.72rem;color:#5de89a;margin-top:6px;display:none}
+
+/* PERSON VIEW (shareable) */
+.pv-header{background:var(--navy2);border-bottom:2px solid var(--gold);padding:1.2rem 1.5rem;text-align:center}
+.pv-header h2{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--gold2);letter-spacing:.04em}
+.pv-header p{font-size:.78rem;color:var(--textm);margin-top:.2rem}
+.back-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--textm);font-size:.75rem;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:1rem}
+.back-btn:hover{border-color:var(--gold2);color:var(--gold2)}
+
+@media(max-width:480px){
+  .podium{grid-template-columns:1fr 1fr;}.pod:first-child{grid-column:span 2}
+  .bracket-grid{grid-template-columns:1fr;min-width:300px}
+}
+</style>
+</head>
+<body>
+
+<div id="app-main">
+  <div class="hdr">
+    <h1>2026 Stanley Cup<br>Bracket Challenge</h1>
+    <p>Last updated: <span id="last-updated">loading...</span></p>
+    <button class="share-btn" onclick="openShareModal('all')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      Share Scoreboard
+    </button>
+  </div>
+  <div class="main">
+    <div class="tabs" id="tabs">
+      <button class="tab active" onclick="switchTab('scoreboard',this)">Scoreboard</button>
+      <button class="tab" onclick="switchTab('series',this)">Series Results</button>
+      <button class="tab" onclick="switchTab('diana',this)">Diana</button>
+      <button class="tab" onclick="switchTab('scott',this)">Scott</button>
+      <button class="tab" onclick="switchTab('tom',this)">Tom</button>
+      <button class="tab" onclick="switchTab('george',this)">George</button>
+      <button class="tab" onclick="switchTab('murphy',this)">Murphy</button>
+      <button class="tab" onclick="switchTab('spensor',this)">Spensor</button>
+      <button class="tab" onclick="switchTab('dave',this)">Dave</button>
+    </div>
+    <div id="pane-scoreboard" class="pane active"></div>
+    <div id="pane-series" class="pane"></div>
+    <div id="pane-diana" class="pane"></div>
+    <div id="pane-scott" class="pane"></div>
+    <div id="pane-tom" class="pane"></div>
+    <div id="pane-george" class="pane"></div>
+    <div id="pane-murphy" class="pane"></div>
+    <div id="pane-spensor" class="pane"></div>
+    <div id="pane-dave" class="pane"></div>
+  </div>
+</div>
+
+<!-- Share Modal -->
+<div class="modal-bg" id="share-modal">
+  <div class="modal">
+    <h3>Share this bracket</h3>
+    <p>Anyone with this link can view this bracket on their own device.</p>
+    <div class="url-box" id="share-url-box"></div>
+    <div class="modal-btns">
+      <button class="modal-btn" onclick="closeModal()">Close</button>
+      <button class="modal-btn primary" onclick="copyLink()">Copy Link</button>
+    </div>
+    <div class="copied-msg" id="copied-msg">Copied to clipboard!</div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+// CORRECT R1 MATCHUPS from the bracket image:
+// WEST: Colorado vs LA Kings | Dallas vs Minnesota | Vegas vs Utah | Edmonton vs Anaheim
+// EAST: Carolina vs Ottawa   | Pittsburgh vs Philadelphia | Buffalo vs Boston | Tampa Bay vs Montreal
+
+const R1_MATCHUPS = {
+  // West
+  "Colorado Avalanche":   {opp:"Los Angeles Kings",   conf:"W"},
+  "Los Angeles Kings":    {opp:"Colorado Avalanche",   conf:"W"},
+  "Dallas Stars":         {opp:"Minnesota Wild",       conf:"W"},
+  "Minnesota Wild":       {opp:"Dallas Stars",         conf:"W"},
+  "Vegas Golden Knights": {opp:"Utah Mammoth",         conf:"W"},
+  "Utah Mammoth":         {opp:"Vegas Golden Knights", conf:"W"},
+  "Edmonton Oilers":      {opp:"Anaheim Ducks",        conf:"W"},
+  "Anaheim Ducks":        {opp:"Edmonton Oilers",      conf:"W"},
+  // East
+  "Carolina Hurricanes":  {opp:"Ottawa Senators",      conf:"E"},
+  "Ottawa Senators":      {opp:"Carolina Hurricanes",  conf:"E"},
+  "Pittsburgh Penguins":  {opp:"Philadelphia Flyers",  conf:"E"},
+  "Philadelphia Flyers":  {opp:"Pittsburgh Penguins",  conf:"E"},
+  "Buffalo Sabres":       {opp:"Boston Bruins",        conf:"E"},
+  "Boston Bruins":        {opp:"Buffalo Sabres",       conf:"E"},
+  "Tampa Bay Lightning":  {opp:"Montreal Canadiens",   conf:"E"},
+  "Montreal Canadiens":   {opp:"Tampa Bay Lightning",  conf:"E"},
+};
+
+// Picks — short names mapped to full names below
+const PICKS = {
+  Diana:{
+    r1e:[["Buffalo","7"],["Tampa Bay","6"],["Carolina","6"],["Pittsburgh","7"]],
+    r2e:[["Buffalo","7"],["Carolina","6"]], fe:["Buffalo","7"],
+    r1w:[["Colorado","5"],["Dallas","7"],["Vegas","6"],["Edmonton","6"]],
+    r2w:[["Colorado","6"],["Edmonton","7"]], fw:["Colorado","7"],
+    cup:["Buffalo Sabres","6"]
+  },
+  Scott:{
+    r1e:[["Carolina","7"],["Pittsburgh","7"],["Buffalo","6"],["Montreal","5"]],
+    r2e:[["Carolina","7"],["Buffalo","6"]], fe:["Buffalo","6"],
+    r1w:[["Colorado","5"],["Minnesota","6"],["Vegas","5"],["Edmonton","7"]],
+    r2w:[["Colorado","6"],["Edmonton","6"]], fw:["Colorado","7"],
+    cup:["Colorado Avalanche","6"]
+  },
+  Tom:{
+    r1e:[["Carolina","6"],["Pittsburgh","7"],["Buffalo","5"],["Montreal","7"]],
+    r2e:[["Carolina","6"],["Montreal","6"]], fe:["Carolina","7"],
+    r1w:[["Colorado","5"],["Dallas","6"],["Vegas","7"],["Edmonton","5"]],
+    r2w:[["Colorado","5"],["Edmonton","6"]], fw:["Edmonton","6"],
+    cup:["Edmonton Oilers","7"]
+  },
+  George:{
+    r1e:[["Buffalo","7"],["Montreal","7"],["Ottawa","6"],["Pittsburgh","6"]],
+    r2e:[["Montreal","6"],["Buffalo","6"]], fe:["Montreal","7"],
+    r1w:[["Colorado","5"],["Minnesota","7"],["Vegas","6"],["Edmonton","5"]],
+    r2w:[["Colorado","6"],["Edmonton","7"]], fw:["Colorado","6"],
+    cup:["Colorado Avalanche","6"]
+  },
+  Murphy:{
+    r1e:[["Buffalo","6"],["Tampa Bay","7"],["Carolina","5"],["Pittsburgh","6"]],
+    r2e:[["Tampa Bay","6"],["Carolina","6"]], fe:["Carolina","6"],
+    r1w:[["Colorado","5"],["Dallas","7"],["Vegas","6"],["Edmonton","5"]],
+    r2w:[["Colorado","6"],["Edmonton","7"]], fw:["Colorado","7"],
+    cup:["Colorado Avalanche","6"]
+  },
+  Spensor:{
+    r1e:[["Boston","6"],["Tampa Bay","5"],["Ottawa","6"],["Pittsburgh","4"]],
+    r2e:[["Tampa Bay","4"],["Pittsburgh","4"]], fe:["Tampa Bay","5"],
+    r1w:[["Colorado","4"],["Minnesota","6"],["Vegas","6"],["Edmonton","5"]],
+    r2w:[["Colorado","5"],["Edmonton","6"]], fw:["Edmonton","6"],
+    cup:["Tampa Bay Lightning","5"]
+  },
+  Dave:{
+    r1e:[["Buffalo","5"],["Tampa Bay","6"],["Ottawa","6"],["Philadelphia","7"]],
+    r2e:[["Tampa Bay","7"],["Ottawa","6"]], fe:["Tampa Bay","5"],
+    r1w:[["Colorado","5"],["Minnesota","7"],["Vegas","6"],["Edmonton","6"]],
+    r2w:[["Colorado","7"],["Vegas","6"]], fw:["Colorado","5"],
+    cup:["Colorado Avalanche","7"]
+  }
+};
+
+// Short name → full name
+const EXPAND = {
+  "Buffalo":"Buffalo Sabres","Tampa Bay":"Tampa Bay Lightning",
+  "Carolina":"Carolina Hurricanes","Pittsburgh":"Pittsburgh Penguins",
+  "Ottawa":"Ottawa Senators","Philadelphia":"Philadelphia Flyers",
+  "Boston":"Boston Bruins","Montreal":"Montreal Canadiens",
+  "Colorado":"Colorado Avalanche","Dallas":"Dallas Stars",
+  "Vegas":"Vegas Golden Knights","Edmonton":"Edmonton Oilers",
+  "Minnesota":"Minnesota Wild","Anaheim":"Anaheim Ducks",
+  "Utah":"Utah Mammoth","LA":"Los Angeles Kings",
+  "Buffalo Sabres":"Buffalo Sabres","Colorado Avalanche":"Colorado Avalanche",
+  "Edmonton Oilers":"Edmonton Oilers","Tampa Bay Lightning":"Tampa Bay Lightning",
+  "Carolina Hurricanes":"Carolina Hurricanes","Montreal Canadiens":"Montreal Canadiens"
+};
+function expand(s){return EXPAND[s]||s}
+
+// ── LIVE SERIES STATE (from actual 2026 playoff scores so far) ────────────────
+// Source: the games fetched — only games between R1 matchup opponents count
+// Series tracked as [team1, team2, wins1, wins2, done, gamesTotal]
+const SERIES_STATE = [
+  // EAST R1
+  {t1:"Carolina Hurricanes", t2:"Ottawa Senators",     w1:1,w2:0, done:false, conf:"E", label:"Carolina vs Ottawa"},
+  {t1:"Pittsburgh Penguins", t2:"Philadelphia Flyers", w1:0,w2:1, done:false, conf:"E", label:"Pittsburgh vs Philadelphia"},
+  {t1:"Buffalo Sabres",      t2:"Boston Bruins",       w1:0,w2:1, done:false, conf:"E", label:"Buffalo vs Boston"},
+  {t1:"Tampa Bay Lightning", t2:"Montreal Canadiens",  w1:0,w2:1, done:false, conf:"E", label:"Tampa Bay vs Montreal"},
+  // WEST R1
+  {t1:"Colorado Avalanche",  t2:"Los Angeles Kings",   w1:2,w2:0, done:false, conf:"W", label:"Colorado vs LA Kings"},
+  {t1:"Dallas Stars",        t2:"Minnesota Wild",      w1:1,w2:1, done:false, conf:"W", label:"Dallas vs Minnesota"},
+  {t1:"Vegas Golden Knights",t2:"Utah Mammoth",        w1:1,w2:1, done:false, conf:"W", label:"Vegas vs Utah"},
+  {t1:"Edmonton Oilers",     t2:"Anaheim Ducks",       w1:2,w2:1, done:false, conf:"W", label:"Edmonton vs Anaheim"},
+];
+
+function getSeriesLeader(s) {
+  if (s.done) return s.w1 > s.w2 ? s.t1 : s.t2;
+  if (s.w1 > s.w2) return s.t1;
+  if (s.w2 > s.w1) return s.t2;
+  return null; // tied
+}
+function getSeriesRecord(s) { return s.w1+"-"+s.w2; }
+function getTotalGames(s) { return s.w1+s.w2; }
+
+// Build a lookup: team → series
+function buildSeriesLookup() {
+  const m = {};
+  SERIES_STATE.forEach(s => { m[s.t1]=s; m[s.t2]=s; });
+  return m;
+}
+
+// ── SCORING ──────────────────────────────────────────────────────────────────
+function scorePlayer(name) {
+  const p = PICKS[name];
+  const lookup = buildSeriesLookup();
+  let pts=0, tpts=0, gpts=0;
+  const breakdown=[];
+
+  const allR1 = p.r1e.concat(p.r1w);
+  allR1.forEach(([shortName, guesGames]) => {
+    const full = expand(shortName);
+    const s = lookup[full];
+    if (!s) return;
+    const leader = getSeriesLeader(s);
+    // Team points: picked team is currently leading or won
+    if (leader === full) {
+      pts+=3; tpts+=3;
+      breakdown.push({label:shortName+" (leading)", type:"team"});
+    }
+    // Games points: only if series finished and total games matches
+    if (s.done && String(getTotalGames(s)) === guesGames) {
+      pts+=2; gpts+=2;
+      breakdown.push({label:shortName+" in "+guesGames, type:"games"});
+    }
+  });
+  return {pts, tpts, gpts, breakdown};
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function renderScoreboard() {
+  const scores = Object.keys(PICKS).map(name=>({name, score:scorePlayer(name)}));
+  scores.sort((a,b)=>b.score.pts-a.score.pts);
+
+  const medals=["1st ★","2nd","3rd"];
+  const podHTML = `<div class="podium">${scores.slice(0,3).map((p,i)=>`
+    <div class="pod${i===0?' gold':''}">
+      <div class="pod-rank">${medals[i]}</div>
+      <div class="pod-name">${p.name}</div>
+      <div class="pod-pts">${p.score.pts}<br><span>pts</span></div>
+    </div>`).join('')}</div>`;
+
+  const tbodyRows = scores.map((p,i)=>{
+    const s=p.score;
+    const detId="det-"+p.name;
+    const bkRows = s.breakdown.length ? s.breakdown.map(b=>`
+      <div class="bk-row"><span>${b.label}</span><span class="bdg ${b.type==='team'?'bdg-t':'bdg-g'}">${b.type==='team'?'+3':'+2'}</span></div>
+    `).join('') : '<div class="bk-row" style="color:rgba(255,255,255,.3)">No points yet</div>';
+
+    return `<tr>
+      <td class="rank-n">${i+1}</td>
+      <td>
+        <div class="p-name">${p.name}
+          <button class="share-btn" style="padding:3px 10px;font-size:.68rem;margin-left:6px" onclick="openShareModal('${p.name.toLowerCase()}')">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          </button>
+        </div>
+        <div class="breakdown" id="${detId}">${bkRows}</div>
+      </td>
+      <td class="r"><span class="pts-n">${s.pts}</span></td>
+      <td class="r">
+        ${s.tpts?`<span class="bdg bdg-t">+${s.tpts} team</span>`:''}
+        ${s.gpts?`<span class="bdg bdg-g">+${s.gpts} games</span>`:''}
+        ${!s.pts?`<span class="bdg bdg-x">0 pts</span>`:''}
+      </td>
+      <td><button class="expand-btn" onclick="toggleBreakdown('${detId}',this)">▼</button></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('pane-scoreboard').innerHTML = `
+    ${podHTML}
+    <div class="card">
+      <div class="card-hdr">Standings</div>
+      <table class="stbl">
+        <thead><tr>
+          <th>#</th><th>Player</th><th class="r">Pts</th><th class="r">Breakdown</th><th></th>
+        </tr></thead>
+        <tbody>${tbodyRows}</tbody>
+      </table>
+    </div>
+    <div class="legend">
+      <div class="leg"><span class="bdg bdg-t">+3</span> picked the correct winning team</div>
+      <div class="leg"><span class="bdg bdg-g">+2</span> picked the correct number of games</div>
+      <div class="leg" style="color:rgba(255,255,255,.3);font-size:.7rem">Points are independent — you can earn either or both</div>
+    </div>`;
+}
+
+function renderSeries() {
+  const east = SERIES_STATE.filter(s=>s.conf==='E');
+  const west = SERIES_STATE.filter(s=>s.conf==='W');
+
+  function makeRow(s) {
+    const leader = getSeriesLeader(s);
+    const rec = getSeriesRecord(s);
+    const statusText = s.done ? 'Final' : 'In progress';
+    const statusClass = s.done ? 'done' : 'ongoing';
+    const t1Leading = s.w1 >= s.w2;
+    return `<div class="series-row">
+      <span class="s-conf ${s.conf.toLowerCase()}">${s.conf}</span>
+      <span class="s-matchup">
+        <span class="${t1Leading||s.done&&s.w1>s.w2?'s-winner':'s-loser'}">${s.t1}</span>
+        <span style="color:rgba(255,255,255,.25);margin:0 4px">vs</span>
+        <span class="${!t1Leading||s.done&&s.w2>s.w1?'s-winner':'s-loser'}">${s.t2}</span>
+      </span>
+      <span class="s-rec">${rec}</span>
+      <span class="s-status ${statusClass}">${statusText}</span>
+    </div>`;
+  }
+
+  document.getElementById('pane-series').innerHTML = `
+    <div class="series-label">Eastern Conference — Round 1</div>
+    ${east.map(makeRow).join('')}
+    <div class="series-label">Western Conference — Round 1</div>
+    ${west.map(makeRow).join('')}
+    <div style="font-size:.72rem;color:rgba(255,255,255,.3);margin-top:12px">
+      Series records based on games played through Apr 17, 2026. Rounds 2+ not yet started.
+    </div>`;
+}
+
+function renderBracket(name) {
+  const p = PICKS[name];
+  const paneId = 'pane-'+name.toLowerCase();
+
+  const confBlock = (title, r1picks, r2picks, fpick, conf) => {
+    const r1rows = r1picks.map(([t,g])=>`
+      <div class="b-pick"><span class="b-pick-name">${t}</span><span class="b-pick-games">in ${g}</span></div>`).join('');
+    const r2rows = r2picks.map(([t,g])=>`
+      <div class="b-pick winner"><span class="b-pick-name">${t}</span><span class="b-pick-games">in ${g}</span></div>`).join('');
+    return `<div>
+      <div class="b-conf-title">${title}</div>
+      <div class="b-round-label">Round 1</div>${r1rows}
+      <div class="b-round-label">Round 2</div>${r2rows}
+      <div class="b-round-label">Conference Final</div>
+      <div class="b-pick winner"><span class="b-pick-name">${fpick[0]}</span><span class="b-pick-games">in ${fpick[1]}</span></div>
+    </div>`;
+  };
+
+  document.getElementById(paneId).innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gold2)">${name}'s Bracket</div>
+      <button class="share-btn" onclick="openShareModal('${name.toLowerCase()}')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        Share ${name}'s Bracket
+      </button>
+    </div>
+    <div class="bracket-wrap">
+      <div class="bracket-grid">
+        ${confBlock("Eastern Conference", p.r1e, p.r2e, p.fe, "E")}
+        ${confBlock("Western Conference", p.r1w, p.r2w, p.fw, "W")}
+      </div>
+    </div>
+    <div class="b-cup">
+      <div>
+        <div class="b-cup-label">Stanley Cup Pick</div>
+        <div class="b-cup-team">${p.cup[0]}</div>
+      </div>
+      <div class="b-cup-games">in ${p.cup[1]}</div>
+    </div>`;
+}
+
+// ── SHARE / LINK LOGIC ───────────────────────────────────────────────────────
+function getShareURL(target) {
+  const base = window.location.href.split('?')[0].split('#')[0];
+  if (target === 'all') return base + '?view=scoreboard';
+  return base + '?view=' + encodeURIComponent(target);
+}
+
+function openShareModal(target) {
+  const url = getShareURL(target);
+  document.getElementById('share-url-box').textContent = url;
+  document.getElementById('share-modal').classList.add('open');
+  document.getElementById('copied-msg').style.display='none';
+  document.getElementById('share-modal')._target = target;
+}
+
+function closeModal() {
+  document.getElementById('share-modal').classList.remove('open');
+}
+
+function copyLink() {
+  const url = document.getElementById('share-url-box').textContent;
+  navigator.clipboard.writeText(url).then(()=>{
+    document.getElementById('copied-msg').style.display='block';
+    setTimeout(()=>document.getElementById('copied-msg').style.display='none', 2500);
+  }).catch(()=>{
+    const el = document.getElementById('share-url-box');
+    el.focus(); el.select();
+  });
+}
+
+document.getElementById('share-modal').addEventListener('click', function(e){
+  if (e.target === this) closeModal();
+});
+
+// ── TAB SWITCHING ────────────────────────────────────────────────────────────
+function switchTab(id, btn) {
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('pane-'+id).classList.add('active');
+  if (btn) btn.classList.add('active');
+}
+
+function toggleBreakdown(id, btn) {
+  const el = document.getElementById(id);
+  el.classList.toggle('open');
+  btn.textContent = el.classList.contains('open') ? '▲' : '▼';
+}
+
+// ── URL-BASED DEEP LINKING ───────────────────────────────────────────────────
+function handleURLView() {
+  const params = new URLSearchParams(window.location.search);
+  const view = params.get('view');
+  if (!view) return;
+  const validTabs = ['scoreboard','series','diana','scott','tom','george','murphy','spensor','dave'];
+  if (validTabs.includes(view)) {
+    const btn = [...document.querySelectorAll('.tab')].find(t=>t.textContent.trim().toLowerCase()===view||
+      (view==='scoreboard'&&t.textContent.includes('Scoreboard'))||
+      (view==='series'&&t.textContent.includes('Series')));
+    switchTab(view, btn);
+  }
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+function init() {
+  document.getElementById('last-updated').textContent = 'Apr 17, 2026 (through Game 2)';
+  renderScoreboard();
+  renderSeries();
+  Object.keys(PICKS).forEach(name => renderBracket(name));
+  handleURLView();
+}
+
+init();
+</script>
+</body>
+</html>
